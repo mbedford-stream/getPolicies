@@ -138,7 +138,7 @@ func main() {
 	policiesCmd := "<get-firewall-policies/>"
 	// policiesCmdGlobal := "<get-global-firewall-policies/>"
 
-	var secPolicies SecurityPolicies
+	var secPolicies MultiRoutingEngineResults
 
 	fmt.Println("Calling getData function")
 	RPCreply := getRPC(*host, sshConfig, policiesCmd)
@@ -149,7 +149,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, v := range secPolicies.SecurityContext {
+	for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
 		fmt.Printf("\n\nFrom Zone: %s\nTo Zone: %s\n\t============================\n", v.ContextInformation.SourceZoneName, v.ContextInformation.DestinationZoneName)
 		for _, v2 := range v.Policies {
 			appList := ""
@@ -181,7 +181,7 @@ func main() {
 	writeOut := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
 	var writePol string
 	// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
-	for _, v := range secPolicies.SecurityContext {
+	for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
 		var srcZoneList []string
 		var dstZoneList []string
 		for _, v2 := range v.Policies {
