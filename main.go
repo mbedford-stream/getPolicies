@@ -193,14 +193,11 @@ func main() {
 		writeOut = ""
 		writeOut = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
 		var writePol string
-		// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
 		for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
 			var srcZoneList []string
 			var dstZoneList []string
 			for _, v2 := range v.Policies {
 				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
-					// var srcZoneList []string
-					// var dstZoneList []string
 					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
 						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
 					}
@@ -214,7 +211,6 @@ func main() {
 					dstZoneList = append(dstZoneList, v.ContextInformation.DestinationZoneName)
 				}
 
-				// appList := ""
 				var appList []string
 				for _, app := range v2.PolicyInformation.Applications.Application {
 					appList = append(appList, app.ApplicationName)
@@ -234,7 +230,6 @@ func main() {
 					writePol = writePol + "\n"
 				}
 				writeOut = writeOut + writePol
-				// fmt.Println(writeOut)
 			}
 		}
 	} else {
@@ -270,14 +265,11 @@ func main() {
 		writeOut = ""
 		writeOut = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
 		var writePol string
-		// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
 		for _, v := range secPoliciesSingleRE.SecurityContext {
 			var srcZoneList []string
 			var dstZoneList []string
 			for _, v2 := range v.Policies {
 				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
-					// var srcZoneList []string
-					// var dstZoneList []string
 					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
 						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
 					}
@@ -291,7 +283,6 @@ func main() {
 					dstZoneList = append(dstZoneList, v.ContextInformation.DestinationZoneName)
 				}
 
-				// appList := ""
 				var appList []string
 				for _, app := range v2.PolicyInformation.Applications.Application {
 					appList = append(appList, app.ApplicationName)
@@ -311,13 +302,11 @@ func main() {
 					writePol = writePol + "\n"
 				}
 				writeOut = writeOut + writePol
-				// fmt.Println(writeOut)
 			}
 		}
 	}
 
 	todayDate := time.Now().Format("02-01-2006")
-	// todayFormatted := todayDate.Format("02-01-2006")
 
 	outputFile := fmt.Sprintf("%s--%s.csv", todayDate, strings.Replace(*host, ".", "_", -1))
 
@@ -330,7 +319,6 @@ func main() {
 	}
 
 	f, err := os.OpenFile(outputFile, os.O_WRONLY, 0755)
-	// f, err := os.Open(outputFile)
 	if err != nil {
 		color.Red("Problems opening output file: %s", outputFile)
 		log.Fatal(err)
