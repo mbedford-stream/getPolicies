@@ -145,7 +145,7 @@ func main() {
 	RPCreply := getRPC(*host, sshConfig, policiesCmd)
 	fmt.Println("Finished getting data.... ")
 
-	var multiRE bool
+	multiRE := true
 	parseErr := xml.Unmarshal([]byte(RPCreply.Data), &secPolicies)
 	if parseErr != nil {
 		color.Red("Error unmarshalling, trying alternate struct")
