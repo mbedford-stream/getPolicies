@@ -139,89 +139,185 @@ func main() {
 	// policiesCmdGlobal := "<get-global-firewall-policies/>"
 
 	var secPolicies MultiRoutingEngineResults
+	var secPoliciesSingleRE SecurityPolicies
 
 	fmt.Println("Calling getData function")
 	RPCreply := getRPC(*host, sshConfig, policiesCmd)
 	fmt.Println("Finished getting data.... ")
 
+	var multiRE bool
 	err = xml.Unmarshal([]byte(RPCreply.Data), &secPolicies)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
-		fmt.Printf("\n\nFrom Zone: %s\nTo Zone: %s\n\t============================\n", v.ContextInformation.SourceZoneName, v.ContextInformation.DestinationZoneName)
-		for _, v2 := range v.Policies {
-			appList := ""
-			for _, app := range v2.PolicyInformation.Applications.Application {
-				appList = fmt.Sprintf("%s, %s", appList, app.ApplicationName)
-			}
-			srcList := ""
-			for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
-				srcList = fmt.Sprintf("%s, %s", srcList, src.AddressName)
-			}
-			dstList := ""
-			for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
-				dstList = fmt.Sprintf("%s, %s", dstList, dst.AddressName)
-			}
-			if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
-				var srcZoneList []string
-				var dstZoneList []string
-				for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
-					srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
-				}
-				for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
-					dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
-				}
-				fmt.Printf("\t---GLOBAL POLICY---\n\tSource Zone/s: %s\n\tDestination Zone/s: %s\n", srcZoneList, dstZoneList)
-			}
-			fmt.Printf("\tPolicy: %s(%s)\n\tSrc Addr: %s\n\tDst Addr: %s\n\tApp/Port: %s\n\tAction: %s\n\t============================\n", v2.PolicyInformation.PolicyName, v2.PolicyInformation.PolicyIdentifier, srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
+		color.Red("Error unmarshalling, trying alternate struct")
+		fmt.Println(err)
+		multiRE = false
+		err = xml.Unmarshal([]byte(RPCreply.Data), &secPoliciesSingleRE)
+		if err != nil {
+			color.Red("Error unmarshalling to alternate struct")
+			log.Fatal(err)
 		}
 	}
-	writeOut := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
-	var writePol string
-	// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
-	for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
-		var srcZoneList []string
-		var dstZoneList []string
-		for _, v2 := range v.Policies {
-			if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
-				// var srcZoneList []string
-				// var dstZoneList []string
-				for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
-					srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
-				}
-				for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
-					dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
-				}
-			} else {
-				srcZoneList = nil
-				dstZoneList = nil
-				srcZoneList = append(srcZoneList, v.ContextInformation.SourceZoneName)
-				dstZoneList = append(dstZoneList, v.ContextInformation.DestinationZoneName)
-			}
 
-			// appList := ""
-			var appList []string
-			for _, app := range v2.PolicyInformation.Applications.Application {
-				appList = append(appList, app.ApplicationName)
+	var writeOut string
+	if multiRE {
+		fmt.Println("Multi RE processing")
+		for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
+			fmt.Printf("\n\nFrom Zone: %s\nTo Zone: %s\n\t============================\n", v.ContextInformation.SourceZoneName, v.ContextInformation.DestinationZoneName)
+			for _, v2 := range v.Policies {
+				appList := ""
+				for _, app := range v2.PolicyInformation.Applications.Application {
+					appList = fmt.Sprintf("%s, %s", appList, app.ApplicationName)
+				}
+				srcList := ""
+				for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
+					srcList = fmt.Sprintf("%s, %s", srcList, src.AddressName)
+				}
+				dstList := ""
+				for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
+					dstList = fmt.Sprintf("%s, %s", dstList, dst.AddressName)
+				}
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					var srcZoneList []string
+					var dstZoneList []string
+					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
+						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
+					}
+					for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
+						dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
+					}
+					fmt.Printf("\t---GLOBAL POLICY---\n\tSource Zone/s: %s\n\tDestination Zone/s: %s\n", srcZoneList, dstZoneList)
+				}
+				fmt.Printf("\tPolicy: %s(%s)\n\tSrc Addr: %s\n\tDst Addr: %s\n\tApp/Port: %s\n\tAction: %s\n\t============================\n", v2.PolicyInformation.PolicyName, v2.PolicyInformation.PolicyIdentifier, srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
 			}
-			var srcList []string
-			for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
-				srcList = append(srcList, src.AddressName)
+		}
+		writeOut = ""
+		writeOut = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
+		var writePol string
+		// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
+		for _, v := range secPolicies.MultiRoutingEngineItem.SecurityPolicies.SecurityContext {
+			var srcZoneList []string
+			var dstZoneList []string
+			for _, v2 := range v.Policies {
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					// var srcZoneList []string
+					// var dstZoneList []string
+					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
+						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
+					}
+					for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
+						dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
+					}
+				} else {
+					srcZoneList = nil
+					dstZoneList = nil
+					srcZoneList = append(srcZoneList, v.ContextInformation.SourceZoneName)
+					dstZoneList = append(dstZoneList, v.ContextInformation.DestinationZoneName)
+				}
+
+				// appList := ""
+				var appList []string
+				for _, app := range v2.PolicyInformation.Applications.Application {
+					appList = append(appList, app.ApplicationName)
+				}
+				var srcList []string
+				for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
+					srcList = append(srcList, src.AddressName)
+				}
+				var dstList []string
+				for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
+					dstList = append(dstList, dst.AddressName)
+				}
+				writePol = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", srcZoneList, dstZoneList, v2.PolicyInformation.PolicyName+"("+v2.PolicyInformation.PolicyIdentifier+")", srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					writePol = writePol + ", GLOBAL\n"
+				} else {
+					writePol = writePol + "\n"
+				}
+				writeOut = writeOut + writePol
+				// fmt.Println(writeOut)
 			}
-			var dstList []string
-			for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
-				dstList = append(dstList, dst.AddressName)
+		}
+	} else {
+		err = xml.Unmarshal([]byte(RPCreply.Data), &secPoliciesSingleRE)
+		if err != nil {
+			color.Red("Error unmarshalling to alternate struct")
+			log.Fatal(err)
+		}
+		for _, v := range secPoliciesSingleRE.SecurityContext {
+			fmt.Printf("\n\nFrom Zone: %s\nTo Zone: %s\n\t============================\n", v.ContextInformation.SourceZoneName, v.ContextInformation.DestinationZoneName)
+			for _, v2 := range v.Policies {
+				appList := ""
+				for _, app := range v2.PolicyInformation.Applications.Application {
+					appList = fmt.Sprintf("%s, %s", appList, app.ApplicationName)
+				}
+				srcList := ""
+				for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
+					srcList = fmt.Sprintf("%s, %s", srcList, src.AddressName)
+				}
+				dstList := ""
+				for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
+					dstList = fmt.Sprintf("%s, %s", dstList, dst.AddressName)
+				}
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					var srcZoneList []string
+					var dstZoneList []string
+					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
+						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
+					}
+					for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
+						dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
+					}
+					fmt.Printf("\t---GLOBAL POLICY---\n\tSource Zone/s: %s\n\tDestination Zone/s: %s\n", srcZoneList, dstZoneList)
+				}
+				fmt.Printf("\tPolicy: %s(%s)\n\tSrc Addr: %s\n\tDst Addr: %s\n\tApp/Port: %s\n\tAction: %s\n\t============================\n", v2.PolicyInformation.PolicyName, v2.PolicyInformation.PolicyIdentifier, srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
 			}
-			writePol = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", srcZoneList, dstZoneList, v2.PolicyInformation.PolicyName+"("+v2.PolicyInformation.PolicyIdentifier+")", srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
-			if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
-				writePol = writePol + ", GLOBAL\n"
-			} else {
-				writePol = writePol + "\n"
+		}
+		writeOut = ""
+		writeOut = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s\n", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
+		var writePol string
+		// fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", "Source Zone", "Destination Zone", "Policy(ID)", "Source Addr", "Destination Addr", "Applications", "Action")
+		for _, v := range secPoliciesSingleRE.SecurityContext {
+			var srcZoneList []string
+			var dstZoneList []string
+			for _, v2 := range v.Policies {
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					// var srcZoneList []string
+					// var dstZoneList []string
+					for _, srcZone := range v2.PolicyInformation.MultipleSourceZones.SourceZone {
+						srcZoneList = append(srcZoneList, srcZone.SourceZoneName)
+					}
+					for _, dstZone := range v2.PolicyInformation.MultipleDestinationZones.DestinationZone {
+						dstZoneList = append(dstZoneList, dstZone.DestinationZoneName)
+					}
+				} else {
+					srcZoneList = nil
+					dstZoneList = nil
+					srcZoneList = append(srcZoneList, v.ContextInformation.SourceZoneName)
+					dstZoneList = append(dstZoneList, v.ContextInformation.DestinationZoneName)
+				}
+
+				// appList := ""
+				var appList []string
+				for _, app := range v2.PolicyInformation.Applications.Application {
+					appList = append(appList, app.ApplicationName)
+				}
+				var srcList []string
+				for _, src := range v2.PolicyInformation.SourceAddresses.SourceAddress {
+					srcList = append(srcList, src.AddressName)
+				}
+				var dstList []string
+				for _, dst := range v2.PolicyInformation.DestinationAddresses.DestinationAddress {
+					dstList = append(dstList, dst.AddressName)
+				}
+				writePol = fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", srcZoneList, dstZoneList, v2.PolicyInformation.PolicyName+"("+v2.PolicyInformation.PolicyIdentifier+")", srcList, dstList, appList, v2.PolicyInformation.PolicyAction.ActionType)
+				if len(v2.PolicyInformation.MultipleDestinationZones.DestinationZone) != 0 || len(v2.PolicyInformation.MultipleSourceZones.SourceZone) != 0 {
+					writePol = writePol + ", GLOBAL\n"
+				} else {
+					writePol = writePol + "\n"
+				}
+				writeOut = writeOut + writePol
+				// fmt.Println(writeOut)
 			}
-			writeOut = writeOut + writePol
-			// fmt.Println(writeOut)
 		}
 	}
 
