@@ -146,15 +146,15 @@ func main() {
 	fmt.Println("Finished getting data.... ")
 
 	var multiRE bool
-	err = xml.Unmarshal([]byte(RPCreply.Data), &secPolicies)
-	if err != nil {
+	parseErr := xml.Unmarshal([]byte(RPCreply.Data), &secPolicies)
+	if parseErr != nil {
 		color.Red("Error unmarshalling, trying alternate struct")
-		fmt.Println(err)
+		fmt.Println(parseErr)
 		multiRE = false
-		err = xml.Unmarshal([]byte(RPCreply.Data), &secPoliciesSingleRE)
-		if err != nil {
+		parseErr2 := xml.Unmarshal([]byte(RPCreply.Data), &secPoliciesSingleRE)
+		if parseErr2 != nil {
 			color.Red("Error unmarshalling to alternate struct")
-			log.Fatal(err)
+			log.Fatal(parseErr2)
 		}
 	}
 
