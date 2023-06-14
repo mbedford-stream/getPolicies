@@ -238,11 +238,6 @@ func main() {
 			}
 		}
 	} else {
-		err = xml.Unmarshal([]byte(RPCreply.Data), &secPoliciesSingleRE)
-		if err != nil {
-			color.Red("Error unmarshalling to alternate struct")
-			log.Fatal(err)
-		}
 		for _, v := range secPoliciesSingleRE.SecurityContext {
 			fmt.Printf("\n\nFrom Zone: %s\nTo Zone: %s\n\t============================\n", v.ContextInformation.SourceZoneName, v.ContextInformation.DestinationZoneName)
 			for _, v2 := range v.Policies {
