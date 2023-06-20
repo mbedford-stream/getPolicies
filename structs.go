@@ -246,7 +246,7 @@ type SecurityPolicies struct {
 }
 
 type MultiRoutingEngineResultsDetails struct {
-	XMLName                   xml.Name `xml:"security-policies"`
+	XMLName                   xml.Name `xml:"rpc-reply"`
 	Text                      string   `xml:",chardata"`
 	Junos                     string   `xml:"junos,attr"`
 	MessageID                 string   `xml:"message-id,attr"`
